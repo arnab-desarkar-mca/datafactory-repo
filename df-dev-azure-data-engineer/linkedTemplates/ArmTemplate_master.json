@@ -7,57 +7,17 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "df-dev-azure-data-engineer"
 		},
-		"ls_sql_database_dev_covid19_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'ls_sql_database_dev_covid19'"
-		},
-		"ls_sql_database_dynamic_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'ls_sql_database_dynamic'"
-		},
-		"ls_http_ecdc_github_properties_typeProperties_url": {
-			"type": "string",
-			"defaultValue": "https://github.com"
-		},
-		"ls_kv_azuredataengineer_properties_typeProperties_baseUrl": {
+		"kv_azure_data_engineer_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-dev-azuredataengineer.vault.azure.net/"
 		},
-		"ls_sa_data_engineer_adls_gen2_properties_typeProperties_url": {
+		"ls_azure_adls_gen2_storage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sadevdataengineergen2.dfs.core.windows.net"
 		},
-		"ls_sa_data_engineer_blob_properties_typeProperties_serviceEndpoint": {
+		"ls_azure_blob_storage_properties_typeProperties_serviceEndpoint": {
 			"type": "string",
 			"defaultValue": "https://sadevdataengineerblob.blob.core.windows.net"
-		},
-		"ls_sql_database_dev_covid19_properties_typeProperties_server": {
-			"type": "string",
-			"defaultValue": "database-server-covid19.database.windows.net"
-		},
-		"ls_sql_database_dev_covid19_properties_typeProperties_database": {
-			"type": "string",
-			"defaultValue": "database-covid19"
-		},
-		"ls_sql_database_dev_covid19_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "azure-data-engineer"
-		},
-		"ls_sql_database_dynamic_properties_typeProperties_server": {
-			"type": "string",
-			"defaultValue": "database-server-covid19.database.windows.net"
-		},
-		"ls_sql_database_dynamic_properties_typeProperties_database": {
-			"type": "string",
-			"defaultValue": "database-covid19"
-		},
-		"ls_sql_database_dynamic_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "azure-data-engineer"
-		},
-		"trg_ingest_population_file_properties_typeProperties_scope": {
-			"type": "string",
-			"defaultValue": "/subscriptions/6315a390-3fa3-4426-b827-96a5426f1b57/resourceGroups/rg-dev-azure-data-engineer/providers/Microsoft.Storage/storageAccounts/sadevdataengineerblob"
 		},
 		"containerUri": {
 			"type": "string",
@@ -86,88 +46,18 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"ls_sql_database_dev_covid19_password": {
-						"value": "[parameters('ls_sql_database_dev_covid19_password')]"
+					"kv_azure_data_engineer_properties_typeProperties_baseUrl": {
+						"value": "[parameters('kv_azure_data_engineer_properties_typeProperties_baseUrl')]"
 					},
-					"ls_sql_database_dynamic_password": {
-						"value": "[parameters('ls_sql_database_dynamic_password')]"
+					"ls_azure_adls_gen2_storage_properties_typeProperties_url": {
+						"value": "[parameters('ls_azure_adls_gen2_storage_properties_typeProperties_url')]"
 					},
-					"ls_http_ecdc_github_properties_typeProperties_url": {
-						"value": "[parameters('ls_http_ecdc_github_properties_typeProperties_url')]"
-					},
-					"ls_kv_azuredataengineer_properties_typeProperties_baseUrl": {
-						"value": "[parameters('ls_kv_azuredataengineer_properties_typeProperties_baseUrl')]"
-					},
-					"ls_sql_database_dev_covid19_properties_typeProperties_server": {
-						"value": "[parameters('ls_sql_database_dev_covid19_properties_typeProperties_server')]"
-					},
-					"ls_sql_database_dev_covid19_properties_typeProperties_database": {
-						"value": "[parameters('ls_sql_database_dev_covid19_properties_typeProperties_database')]"
-					},
-					"ls_sql_database_dev_covid19_properties_typeProperties_userName": {
-						"value": "[parameters('ls_sql_database_dev_covid19_properties_typeProperties_userName')]"
-					},
-					"ls_sql_database_dynamic_properties_typeProperties_server": {
-						"value": "[parameters('ls_sql_database_dynamic_properties_typeProperties_server')]"
-					},
-					"ls_sql_database_dynamic_properties_typeProperties_database": {
-						"value": "[parameters('ls_sql_database_dynamic_properties_typeProperties_database')]"
-					},
-					"ls_sql_database_dynamic_properties_typeProperties_userName": {
-						"value": "[parameters('ls_sql_database_dynamic_properties_typeProperties_userName')]"
-					},
-					"ls_sa_data_engineer_adls_gen2_properties_typeProperties_url": {
-						"value": "[parameters('ls_sa_data_engineer_adls_gen2_properties_typeProperties_url')]"
-					},
-					"ls_sa_data_engineer_blob_properties_typeProperties_serviceEndpoint": {
-						"value": "[parameters('ls_sa_data_engineer_blob_properties_typeProperties_serviceEndpoint')]"
+					"ls_azure_blob_storage_properties_typeProperties_serviceEndpoint": {
+						"value": "[parameters('ls_azure_blob_storage_properties_typeProperties_serviceEndpoint')]"
 					}
 				}
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "df-dev-azure-data-engineer_ArmTemplate_1",
-			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2024-03-01",
-			"properties": {
-				"mode": "incremental",
-				"templateLink": {
-					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
-					"contentVersion": "1.0.0.0"
-				},
-				"parameters": {
-					"factoryName": {
-						"value": "[parameters('factoryName')]"
-					}
-				}
-			},
-			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'df-dev-azure-data-engineer_ArmTemplate_0')]"
-			]
-		},
-		{
-			"name": "df-dev-azure-data-engineer_ArmTemplate_2",
-			"type": "Microsoft.Resources/deployments",
-			"apiVersion": "2024-03-01",
-			"properties": {
-				"mode": "incremental",
-				"templateLink": {
-					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
-					"contentVersion": "1.0.0.0"
-				},
-				"parameters": {
-					"factoryName": {
-						"value": "[parameters('factoryName')]"
-					},
-					"trg_ingest_population_file_properties_typeProperties_scope": {
-						"value": "[parameters('trg_ingest_population_file_properties_typeProperties_scope')]"
-					}
-				}
-			},
-			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'df-dev-azure-data-engineer_ArmTemplate_1')]"
-			]
 		}
 	]
 }
