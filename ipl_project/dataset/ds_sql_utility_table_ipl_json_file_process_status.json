@@ -10,34 +10,6 @@
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
-		"schema": [
-			{
-				"name": "id",
-				"type": "bigint",
-				"precision": 19
-			},
-			{
-				"name": "json_filename",
-				"type": "varchar"
-			},
-			{
-				"name": "start_time",
-				"type": "datetime2",
-				"scale": 7
-			},
-			{
-				"name": "end_time",
-				"type": "datetime2",
-				"scale": 7
-			},
-			{
-				"name": "status",
-				"type": "varchar"
-			}
-		],
-		"typeProperties": {
-			"schema": "utility",
-			"table": "ipl_json_file_process_status"
-		}
+		"schema": []
 	}
 }
