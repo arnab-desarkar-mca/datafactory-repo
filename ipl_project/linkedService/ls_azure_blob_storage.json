@@ -1,0 +1,15 @@
+{
+	"name": "ls_azure_blob_storage",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://sadevdataengineerblob.blob.core.windows.net",
+			"credential": {
+				"referenceName": "credential_azure_blob_storage_spn",
+				"type": "CredentialReference"
+			},
+			"accountKind": "BlobStorage"
+		}
+	}
+}

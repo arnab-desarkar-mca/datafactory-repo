@@ -1,0 +1,30 @@
+{
+	"name": "ds_adls_gen2_json_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_adls_gen2_storage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"p_folderName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "ipl-project-adls-gen2"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().p_folderName",
+					"type": "Expression"
+				},
+				"fileSystem": "ipl"
+			}
+		},
+		"schema": {}
+	}
+}
