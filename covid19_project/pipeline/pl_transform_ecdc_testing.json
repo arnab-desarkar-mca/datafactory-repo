@@ -1,0 +1,36 @@
+{
+	"name": "pl_transform_ecdc_testing",
+	"properties": {
+		"activities": [
+			{
+				"name": "databricks job ecdc transform testing",
+				"type": "DatabricksJob",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"jobId": "686164189458997",
+					"jobParameters": {
+						"processFolderName": "testing"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_azure_databricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "covid19/transform"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-05-25T10:31:08Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

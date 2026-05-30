@@ -1,0 +1,15 @@
+{
+	"name": "df-dev-azure-data-engineer",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Enabled",
+			"editable": true
+		}
+	},
+	"location": "ukwest",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "d8987a9c-355e-479c-88e7-a9303832936a",
+		"tenantId": "874c3cc9-ee86-4607-b1c7-f222ac034af3"
+	}
+}

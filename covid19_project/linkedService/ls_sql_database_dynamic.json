@@ -1,0 +1,17 @@
+{
+	"name": "ls_sql_database_dynamic",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "database-server-covid19.database.windows.net",
+			"database": "database-covid19",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "azure-data-engineer",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEFDQkQ0MkZDLUMzRDctNDlGNC05MkNCLTk2Njg4QTlGQzQ0MF8yMDcyMDljZS1lNjU3LTRkYjMtOGY1YS1lYjI4MmJiMmY1ZDMiDQp9"
+		}
+	}
+}

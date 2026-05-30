@@ -1,0 +1,40 @@
+{
+	"name": "ds_source_adls_gen2_incremental_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sa_data_engineer_adls_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "increamental_testing"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "increamental_load_control.json",
+				"folderPath": "utility",
+				"fileSystem": "incremental-load"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"sourceSchemaName": {
+					"type": "string"
+				},
+				"targetSchemaName": {
+					"type": "string"
+				},
+				"tableName": {
+					"type": "string"
+				},
+				"processName": {
+					"type": "string"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

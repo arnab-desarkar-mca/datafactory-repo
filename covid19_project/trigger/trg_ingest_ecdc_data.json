@@ -1,0 +1,25 @@
+{
+	"name": "trg_ingest_ecdc_data",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pl_orchestrate_ecdc_data",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 24,
+				"startTime": "2026-05-25T13:21:00",
+				"endTime": "2026-05-26T13:20:00",
+				"timeZone": "India Standard Time"
+			}
+		}
+	}
+}

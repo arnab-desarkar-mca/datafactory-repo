@@ -1,0 +1,174 @@
+{
+	"name": "pl_incremental_load_metadata_driven",
+	"properties": {
+		"activities": [
+			{
+				"name": "lookup incremental JSON file",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "ds_source_adls_gen2_incremental_json",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "for each item in JSON",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "lookup incremental JSON file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lookup incremental JSON file').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 2,
+					"activities": [
+						{
+							"name": "lookup max load ts for process",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "select \ncoalesce(max(last_load_ts), cast('1800-01-01 00:00:00' as datetime2)) as last_load_ts \nfrom\ntarget_schema.auditlog\nwhere processname = '@{item().processName}'",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "ds_sql_database_dynamic_source",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "copy data from source to target sql database",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "lookup max load ts for process",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "@concat(\n    'select * from '\n    , item().sourceSchemaName\n    , '.'\n    , item().tableName\n    , ' where load_ts > cast(''', activity('lookup max load ts for process').output.firstRow.last_load_ts, ''' as datetime2)' \n)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": {
+										"value": "@concat(\n    'insert into target_schema.auditlog (processname, last_load_ts) values (''', item().processName, ''', (select max(load_ts) from ', item().sourceSchemaName, '.', item().tableName, '))'\n)",
+										"type": "Expression"
+									},
+									"writeBehavior": "upsert",
+									"upsertSettings": {
+										"useTempDB": true,
+										"keys": {
+											"value": "@createArray('id')",
+											"type": "Expression"
+										}
+									},
+									"sqlWriterUseTableLock": false,
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_sql_database_dynamic_source",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sql_database_dynamic_target",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_schemaName": {
+											"value": "@item().targetSchemaName",
+											"type": "Expression"
+										},
+										"p_tableName": {
+											"value": "@item().tableName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "increamental_testing"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-05-25T18:22:21Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,15 @@
+{
+	"name": "ls_sa_data_engineer_adls_gen2",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://sadevdataengineergen2.dfs.core.windows.net",
+			"credential": {
+				"referenceName": "credential_adls_gen2_storage",
+				"type": "CredentialReference"
+			}
+		}
+	}
+}

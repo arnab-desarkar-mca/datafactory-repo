@@ -1,0 +1,34 @@
+{
+	"name": "ds_sql_database_dynamic_target",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_database_dynamic",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"p_schemaName": {
+				"type": "string"
+			},
+			"p_tableName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "increamental_testing"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().p_schemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().p_tableName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

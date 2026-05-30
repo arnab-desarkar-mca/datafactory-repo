@@ -1,0 +1,16 @@
+{
+	"name": "ls_sa_data_engineer_blob",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://sadevdataengineerblob.blob.core.windows.net",
+			"credential": {
+				"referenceName": "credential_blob_storage",
+				"type": "CredentialReference"
+			},
+			"accountKind": "BlobStorage"
+		}
+	}
+}

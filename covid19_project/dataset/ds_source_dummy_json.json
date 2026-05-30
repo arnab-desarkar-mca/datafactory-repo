@@ -1,0 +1,24 @@
+{
+	"name": "ds_source_dummy_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sa_data_engineer_blob",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "covid19/source"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "dummy_json.json",
+				"folderPath": "dummy_file",
+				"container": "utility"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

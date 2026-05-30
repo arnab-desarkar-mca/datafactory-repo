@@ -1,0 +1,35 @@
+{
+	"name": "ds_source_ecdc_files_http",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http_ecdc_github",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"p_relativeURL": {
+				"type": "string",
+				"defaultValue": "ttt"
+			}
+		},
+		"folder": {
+			"name": "covid19/source"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "@dataset().p_relativeURL",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

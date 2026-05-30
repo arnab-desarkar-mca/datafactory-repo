@@ -1,0 +1,318 @@
+{
+	"name": "pl_ingest_population_file",
+	"properties": {
+		"activities": [
+			{
+				"name": "metadata of population file",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_source_population_zip",
+						"type": "DatasetReference",
+						"parameters": {
+							"population_raw_filename": "population_by_age.tsv.gz"
+						}
+					},
+					"fieldList": [
+						"exists",
+						"columnCount",
+						"size",
+						"itemName"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "coditional check for population data",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "metadata of population file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@and(\n    and(activity('metadata of population file').output.exists, equals(activity('metadata of population file').output.columnCount, 13)),\n    greater(activity('metadata of population file').output.size, 0)\n)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "fail process",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Population Zip File Not Available or Metadata Incorrect",
+								"errorCode": "-99999"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "wait for 20 secs",
+							"description": "Wait for 20 seconds to allow the file to be placed properly",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 20
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "lookup raw audit log",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "coditional check for population data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT COUNT(*) AS RECORD_COUNT FROM [covid19].[raw_audit_log]WHERE file_name = '@{activity('metadata of population file').output.itemName}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "00:10:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_sink_raw_audit_log",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "check file processing status",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "lookup raw audit log",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('lookup raw audit log').output.firstRow.RECORD_COUNT, 0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "fail file already processed",
+							"type": "Fail",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Population File already Processed",
+								"errorCode": "-99999"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "copy population file",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": false,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_source_population_zip",
+									"type": "DatasetReference",
+									"parameters": {
+										"population_raw_filename": "population_by_age.tsv.gz"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sink_population_raw",
+									"type": "DatasetReference",
+									"parameters": {
+										"population_folder": "population",
+										"population_raw_file": "population_by_age.tsv"
+									}
+								}
+							]
+						},
+						{
+							"name": "delete source file",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "stored procedure sp_insertRawAuditLog",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_source_population_zip",
+									"type": "DatasetReference",
+									"parameters": {
+										"population_raw_filename": "population_by_age.tsv.gz"
+									}
+								},
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "ls_sa_data_engineer_blob",
+										"type": "LinkedServiceReference"
+									},
+									"path": "logs/population_deleted_files"
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
+						},
+						{
+							"name": "stored procedure sp_insertRawAuditLog",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "copy population file",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[covid19].[sp_insertRawAuditLog]",
+								"storedProcedureParameters": {
+									"column_count": {
+										"value": {
+											"value": "@activity('metadata of population file').output.columnCount",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"file_name": {
+										"value": {
+											"value": "@activity('metadata of population file').output.itemName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"file_size": {
+										"value": {
+											"value": "@activity('metadata of population file').output.size",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "ls_sql_database_dev_covid19",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "covid19/ingestion"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-05-25T10:31:09Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

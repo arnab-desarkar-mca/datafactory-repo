@@ -1,0 +1,44 @@
+{
+	"name": "ds_sink_population_raw",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sa_data_engineer_adls_gen2",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"population_folder": {
+				"type": "string",
+				"defaultValue": "population"
+			},
+			"population_raw_file": {
+				"type": "string",
+				"defaultValue": "population_by_age.tsv"
+			}
+		},
+		"folder": {
+			"name": "covid19/sink"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().population_raw_file",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().population_folder",
+					"type": "Expression"
+				},
+				"fileSystem": "raw"
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

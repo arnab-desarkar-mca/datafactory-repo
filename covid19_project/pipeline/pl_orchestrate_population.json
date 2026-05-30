@@ -1,0 +1,52 @@
+{
+	"name": "pl_orchestrate_population",
+	"properties": {
+		"activities": [
+			{
+				"name": "pipeline population ingestion",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_ingest_population_file",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pipeline population transform",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pipeline population ingestion",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_transform_ecdc_population",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "covid19/execute"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-05-25T10:31:10Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

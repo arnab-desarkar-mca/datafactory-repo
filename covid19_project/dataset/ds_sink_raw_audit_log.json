@@ -1,0 +1,33 @@
+{
+	"name": "ds_sink_raw_audit_log",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_database_dev_covid19",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "covid19/sink"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "filename",
+				"type": "varchar"
+			},
+			{
+				"name": "filesize",
+				"type": "varchar"
+			},
+			{
+				"name": "columncount",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "covid19",
+			"table": "raw_audit_log"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

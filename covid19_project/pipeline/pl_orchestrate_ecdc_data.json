@@ -1,0 +1,147 @@
+{
+	"name": "pl_orchestrate_ecdc_data",
+	"properties": {
+		"activities": [
+			{
+				"name": "pipeline ingest ecdc data from http",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_ingest_ecdc_data_http_to_adls_gen2",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pipeline transform cases and deaths",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pipeline ingest ecdc data from http",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_transform_ecdc_case_deaths_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"p_fileName": "cases_deaths.csv"
+					}
+				}
+			},
+			{
+				"name": "pipeline transform hospital admissions",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pipeline ingest ecdc data from http",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_transform_ecdc_hospital_data",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pipeline transform non hive testing",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pipeline ingest ecdc data from http",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_transform_ecdc_testing",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pipeline load sql cases and deaths",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pipeline transform cases and deaths",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_load_cases_and_deaths",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pipeline load sql hospital admissions daily",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pipeline transform hospital admissions",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_load_hospital_admissions_daily",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "covid19/execute"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-05-25T10:31:10Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

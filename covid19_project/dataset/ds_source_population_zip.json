@@ -1,0 +1,38 @@
+{
+	"name": "ds_source_population_zip",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sa_data_engineer_blob",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"population_raw_filename": {
+				"type": "string",
+				"defaultValue": "population_by_age.tsv.gz"
+			}
+		},
+		"folder": {
+			"name": "covid19/source"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().population_raw_filename",
+					"type": "Expression"
+				},
+				"container": "population"
+			},
+			"columnDelimiter": "\t",
+			"compressionCodec": "gzip",
+			"compressionLevel": "Optimal",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,70 @@
+{
+	"name": "ds_source_ecdc_lookup_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sa_data_engineer_blob",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "covid19/source"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "ecdc_file_lookup.json",
+				"folderPath": "ecdc_lookup",
+				"container": "utility"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"cases_deaths": {
+					"type": "object",
+					"properties": {
+						"relativeURL": {
+							"type": "string"
+						},
+						"folderName": {
+							"type": "string"
+						},
+						"fileName": {
+							"type": "string"
+						}
+					}
+				},
+				"hospital_admissions": {
+					"type": "object",
+					"properties": {
+						"relativeURL": {
+							"type": "string"
+						},
+						"folderName": {
+							"type": "string"
+						},
+						"fileName": {
+							"type": "string"
+						}
+					}
+				},
+				"country_response": {
+					"type": "object",
+					"properties": {
+						"relativeURL": {
+							"type": "string"
+						},
+						"folderName": {
+							"type": "string"
+						},
+						"fileName": {
+							"type": "string"
+						}
+					}
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

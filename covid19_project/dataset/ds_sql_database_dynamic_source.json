@@ -1,0 +1,16 @@
+{
+	"name": "ds_sql_database_dynamic_source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_database_dynamic",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "increamental_testing"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

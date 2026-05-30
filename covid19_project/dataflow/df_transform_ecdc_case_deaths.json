@@ -1,0 +1,133 @@
+{
+	"name": "df_transform_ecdc_case_deaths",
+	"properties": {
+		"folder": {
+			"name": "covid19"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_source_ecdc_cases_and_deaths_adls_gen2",
+						"type": "DatasetReference"
+					},
+					"name": "ecdcCasesAndDeaths"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_source_ecdc_country_lookup",
+						"type": "DatasetReference"
+					},
+					"name": "sourceLookupCountryCode"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_sink_ecdc_cases_and_deaths_adls_gen2",
+						"type": "DatasetReference"
+					},
+					"name": "sinkCasesAndDeaths"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filterEuropeData"
+				},
+				{
+					"name": "lookupCountryCode"
+				},
+				{
+					"name": "selectRequiredColumns"
+				},
+				{
+					"name": "derivingColumnsForCaseDeaths"
+				},
+				{
+					"name": "pivotCaseAndDeathsCount"
+				},
+				{
+					"name": "selecrRenamingfields"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          country as string,",
+				"          country_code as string,",
+				"          continent as string,",
+				"          population as string,",
+				"          indicator as string,",
+				"          daily_count as string,",
+				"          date as string,",
+				"          rate_14_day as string,",
+				"          source as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> ecdcCasesAndDeaths",
+				"source(output(",
+				"          country as string,",
+				"          country_code_2_digit as string,",
+				"          country_code_3_digit as string,",
+				"          continent as string,",
+				"          population as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sourceLookupCountryCode",
+				"ecdcCasesAndDeaths filter(equalsIgnoreCase(continent, 'Europe')) ~> filterEuropeData",
+				"filterEuropeData, sourceLookupCountryCode lookup(ecdcCasesAndDeaths@country == sourceLookupCountryCode@country",
+				"     && ecdcCasesAndDeaths@continent == sourceLookupCountryCode@continent,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'right')~> lookupCountryCode",
+				"derivingColumnsForCaseDeaths select(mapColumn(",
+				"          country = ecdcCasesAndDeaths@country,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit,",
+				"          population = sourceLookupCountryCode@population,",
+				"          indicator,",
+				"          daily_count,",
+				"          reported_date,",
+				"          source",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectRequiredColumns",
+				"lookupCountryCode derive(daily_count = toLong(daily_count),",
+				"          reported_date = toDate(date, 'yyyy-MM-dd')) ~> derivingColumnsForCaseDeaths",
+				"selectRequiredColumns pivot(groupBy(country,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit,",
+				"          population,",
+				"          reported_date,",
+				"          source),",
+				"     pivotBy(indicator, ['confirmed cases', 'deaths']),",
+				"     count = sum(daily_count),",
+				"     columnNaming: '$V_$N',",
+				"     lateral: false) ~> pivotCaseAndDeathsCount",
+				"pivotCaseAndDeathsCount select(mapColumn(",
+				"          country,",
+				"          country_code_2_digit,",
+				"          country_code_3_digit,",
+				"          population,",
+				"          cases_count = {confirmed cases_count},",
+				"          deaths_count,",
+				"          reported_date,",
+				"          source",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selecrRenamingfields",
+				"selecrRenamingfields sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     dateFormat:'yyyy-MM-dd',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1) ~> sinkCasesAndDeaths"
+			]
+		}
+	}
+}

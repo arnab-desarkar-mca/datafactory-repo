@@ -1,0 +1,324 @@
+{
+	"name": "pl_ingest_ecdc_data_http_to_adls_gen2",
+	"properties": {
+		"activities": [
+			{
+				"name": "lookup ecdc file",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "ds_source_ecdc_lookup_file",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "for each ecdc file",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "lookup ecdc file",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lookup ecdc file').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "set variable fileName",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "v_fileName",
+								"value": {
+									"value": "@item().fileName",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "get metadata of ecdc files",
+							"type": "GetMetadata",
+							"dependsOn": [
+								{
+									"activity": "copy ecdc files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_sink_ecdc_files_adls_gen2",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_folderName": {
+											"value": "@item().folderName",
+											"type": "Expression"
+										},
+										"p_fileName": {
+											"value": "@item().fileName",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"itemName",
+									"columnCount",
+									"size"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
+						},
+						{
+							"name": "set variable relativeURL",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "v_relativeURL",
+								"value": {
+									"value": "@item().relativeURL",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "set variable folderName",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "v_folderName",
+								"value": {
+									"value": "@item().folderName",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "copy ecdc files",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "set variable fileName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "set variable relativeURL",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "set variable folderName",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_source_ecdc_files_http",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_relativeURL": {
+											"value": "@variables('v_relativeURL')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sink_ecdc_files_adls_gen2",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_folderName": {
+											"value": "@variables('v_folderName')",
+											"type": "Expression"
+										},
+										"p_fileName": {
+											"value": "@item().fileName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "load audit status of ecdc files",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "get metadata of ecdc files",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": {
+										"value": "@concat(\n    'insert into covid19.raw_audit_log (file_name, relative_URL, file_size, column_count, status) values ('''\n    , variables('v_fileName')\n    , ''', '''\n    , variables('v_relativeURL')\n    , ''', '\n    , string(activity('get metadata of ecdc files').output.size)\n    , ', '\n    , string(activity('get metadata of ecdc files').output.columnCount)\n    , ', ''Processed'')'\n)",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_source_dummy_json",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sink_raw_audit_log",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"v_relativeURL": {
+				"type": "String"
+			},
+			"v_folderName": {
+				"type": "String"
+			},
+			"v_fileName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "covid19/ingestion"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-05-25T10:31:09Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
