@@ -1,0 +1,23 @@
+{
+	"name": "ls_azure_sql_database",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "database-server-ipl.database.windows.net",
+			"database": "database-ipl",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "azure-data-engineer",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "kv_azure_data_engineer",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "secrets-azure-sql-database-ipl-pwd"
+			}
+		}
+	}
+}
