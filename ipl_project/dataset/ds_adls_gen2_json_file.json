@@ -1,5 +1,5 @@
 {
-	"name": "ds_adls_gen2_json",
+	"name": "ds_adls_gen2_json_file",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_azure_adls_gen2_storage",

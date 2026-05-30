@@ -1,5 +1,5 @@
 {
-	"name": "ds_blob_ipl_json",
+	"name": "ds_blob_json_file",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_azure_blob_storage",
