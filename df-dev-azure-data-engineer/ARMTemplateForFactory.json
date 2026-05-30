@@ -37,6 +37,313 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_copy_ipl_json_files')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get List of JSON Files",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_blob_json_file",
+								"type": "DatasetReference",
+								"parameters": {
+									"p_folderName": {
+										"value": "@pipeline().parameters.pp_blob_json_folderName",
+										"type": "Expression"
+									}
+								}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "JsonReadSettings"
+							}
+						}
+					},
+					{
+						"name": "For Each JSON File",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get List of JSON Files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get List of JSON Files').output.childItems",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"batchCount": 2,
+							"activities": [
+								{
+									"name": "Lookup JSON File Status",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@{concat(\n'select count(*) as record_count from \n[utility].[ipl_json_file_process_status]\nwhere\n[json_filename] ='''\n, item().name\n, ''''\n)}",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "ds_sql_utility_table_ipl_json_file_process_status",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
+								},
+								{
+									"name": "If JSON File is not processed",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "Lookup JSON File Status",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@equals(activity('Lookup JSON File Status').output.firstRow.record_count, 0)",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "Copy JSON Files from Blob to ADLS Gen2",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "Stored Procedure Pre-Copy JSON",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.00:10:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "JsonSource",
+														"storeSettings": {
+															"type": "AzureBlobStorageReadSettings",
+															"recursive": false,
+															"wildcardFolderPath": {
+																"value": "@pipeline().parameters.pp_blob_json_folderName",
+																"type": "Expression"
+															},
+															"wildcardFileName": {
+																"value": "@item().name",
+																"type": "Expression"
+															},
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "JsonReadSettings"
+														}
+													},
+													"sink": {
+														"type": "JsonSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "JsonWriteSettings"
+														}
+													},
+													"enableStaging": false
+												},
+												"inputs": [
+													{
+														"referenceName": "ds_blob_json_file",
+														"type": "DatasetReference",
+														"parameters": {
+															"p_folderName": {
+																"value": "@pipeline().parameters.pp_blob_json_folderName",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "ds_adls_gen2_json_file",
+														"type": "DatasetReference",
+														"parameters": {
+															"p_folderName": {
+																"value": "@pipeline().parameters.pp_adls_gen2_json_folderName",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											},
+											{
+												"name": "Stored Procedure Pre-Copy JSON",
+												"type": "SqlServerStoredProcedure",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.00:10:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"storedProcedureName": "[[utility].[sp_log_json_file_process_status]",
+													"storedProcedureParameters": {
+														"json_file": {
+															"value": {
+																"value": "@item().name",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"process_type": {
+															"value": {
+																"value": "@pipeline().parameters.pp_sp_process_status_start",
+																"type": "Expression"
+															},
+															"type": "String"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "ls_azure_sql_database",
+													"type": "LinkedServiceReference"
+												}
+											},
+											{
+												"name": "Stored Procedure Post-Copy JSON",
+												"type": "SqlServerStoredProcedure",
+												"dependsOn": [
+													{
+														"activity": "Copy JSON Files from Blob to ADLS Gen2",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.00:10:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"storedProcedureName": "[[utility].[sp_log_json_file_process_status]",
+													"storedProcedureParameters": {
+														"json_file": {
+															"value": {
+																"value": "@item().name",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"process_type": {
+															"value": {
+																"value": "@pipeline().parameters.pp_sp_process_status_end",
+																"type": "Expression"
+															},
+															"type": "String"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "ls_azure_sql_database",
+													"type": "LinkedServiceReference"
+												}
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pp_blob_json_folderName": {
+						"type": "string",
+						"defaultValue": "ipl-json-dumps"
+					},
+					"pp_adls_gen2_json_folderName": {
+						"type": "string",
+						"defaultValue": "raw_json"
+					},
+					"pp_sp_process_status_start": {
+						"type": "string",
+						"defaultValue": "start"
+					},
+					"pp_sp_process_status_end": {
+						"type": "string",
+						"defaultValue": "end"
+					},
+					"pp_adls_gen2_utility_folderName": {
+						"type": "string",
+						"defaultValue": "utility"
+					}
+				},
+				"folder": {
+					"name": "ipl-project/copy_json"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_blob_json_file')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sql_utility_table_ipl_json_file_process_status')]",
+				"[concat(variables('factoryId'), '/datasets/ds_adls_gen2_json_file')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_adls_gen2_json_file')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
