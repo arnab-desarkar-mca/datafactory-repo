@@ -13,6 +13,15 @@
 		},
 		"ls_azure_blob_storage_properties_typeProperties_serviceEndpoint": {
 			"value": "https://sadevdataengineerblob.blob.core.windows.net"
+		},
+		"ls_azure_sql_database_properties_typeProperties_server": {
+			"value": "database-server-ipl.database.windows.net"
+		},
+		"ls_azure_sql_database_properties_typeProperties_database": {
+			"value": "database-ipl"
+		},
+		"ls_azure_sql_database_properties_typeProperties_userName": {
+			"value": "azure-data-engineer"
 		}
 	}
 }

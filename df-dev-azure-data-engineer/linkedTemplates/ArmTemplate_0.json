@@ -11,6 +11,18 @@
 			"type": "string",
 			"defaultValue": "https://kv-dev-azuredataengineer.vault.azure.net/"
 		},
+		"ls_azure_sql_database_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "database-server-ipl.database.windows.net"
+		},
+		"ls_azure_sql_database_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "database-ipl"
+		},
+		"ls_azure_sql_database_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azure-data-engineer"
+		},
 		"ls_azure_adls_gen2_storage_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sadevdataengineergen2.dfs.core.windows.net"
@@ -36,6 +48,34 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azure_sql_database')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('ls_azure_sql_database_properties_typeProperties_server')]",
+					"database": "[parameters('ls_azure_sql_database_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_azure_sql_database_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "kv_azure_data_engineer",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "secrets-azure-sql-database-ipl-pwd"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/kv_azure_data_engineer')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/credential_azure_adls_gen2_storage_spn')]",
@@ -81,6 +121,27 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/kv_azure_data_engineer')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_utility_table_ipl_json_file_process_status')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "ipl-project-azure-sql"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
 			]
 		},
 		{
