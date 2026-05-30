@@ -1,0 +1,15 @@
+{
+	"name": "ds_sql_utility_table_ipl_json_file_process_status",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_sql_database",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ipl-project-azure-sql"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
