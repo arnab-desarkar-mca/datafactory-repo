@@ -1,0 +1,43 @@
+{
+	"name": "ds_sql_utility_table_ipl_json_file_process_status",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_sql_database",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ipl-project-azure-sql"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "json_filename",
+				"type": "varchar"
+			},
+			{
+				"name": "start_time",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "end_time",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "status",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "utility",
+			"table": "ipl_json_file_process_status"
+		}
+	}
+}
