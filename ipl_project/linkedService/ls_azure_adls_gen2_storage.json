@@ -1,0 +1,14 @@
+{
+	"name": "ls_azure_adls_gen2_storage",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://sadevdataengineergen2.dfs.core.windows.net",
+			"credential": {
+				"referenceName": "credential_azure_adls_gen2_storage_spn",
+				"type": "CredentialReference"
+			}
+		}
+	}
+}
