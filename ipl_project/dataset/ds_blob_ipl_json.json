@@ -1,0 +1,30 @@
+{
+	"name": "ds_blob_ipl_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_blob_storage",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"p_folderName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "ipl-project-blob"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": {
+					"value": "@dataset().p_folderName",
+					"type": "Expression"
+				},
+				"container": "ipl"
+			}
+		},
+		"schema": {}
+	}
+}
